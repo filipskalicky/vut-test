@@ -1,0 +1,24 @@
+# Vedos: the domain folder is the document root and cannot be changed.
+# Public files live in www/. Keep app/, vendor/, writable/ and .env off the web.
+
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteBase /
+
+	# Block private paths (document root is the whole release).
+	RewriteRule ^(?:\.env|app(?:/|$)|vendor(?:/|$)|writable(?:/|$)|database(?:/|$)|composer\.(json|lock)|README\.md|DEPLOY\.md) - [F,L]
+
+	# Hide the /www/ prefix in the address bar.
+	RewriteCond %{THE_REQUEST} \s/+www/ [NC]
+	RewriteRule ^www/(.*)$ /$1 [R=301,L]
+
+	# Already inside www/ after an internal rewrite, or the front controller.
+	RewriteRule ^index\.php - [L]
+	RewriteRule ^www/ - [L]
+
+	# Everything else goes to CodeIgniter. Existing files at this folder
+	# (build/, favicons) are served by Apache because of !-f below.
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule ^(.*)$ index.php/$1 [L,QSA]
+</IfModule>
